@@ -1,7 +1,9 @@
 #include <gst/gst.h>
 #include <iostream>
+using namespace std;
 
 int main(int argc, char *argv[]) {
+  cout << "GStreamer Test" << endl;
   gst_init(&argc, &argv);
 
   GstElement *pipeline =
