@@ -15,7 +15,7 @@ pkg_check_modules(GSTREAMER REQUIRED
     gstreamer-app-1.0
 )
 
-add_executable(myapp ./Src/main.cpp)
+add_executable(myapp ./src/main.cpp)
 
 target_include_directories(myapp PRIVATE
     ${GSTREAMER_INCLUDE_DIRS}
