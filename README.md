@@ -1,4 +1,5 @@
 # Edge-AI-Vision-Pipeline-Optimization
+
 Optimizing NVIDIA-based vision pipelines to achieve ultra-low latency (17ms) for real-time industrial and medical AI applications.
 
 ---
@@ -13,60 +14,55 @@ Optimizing NVIDIA-based vision pipelines to achieve ultra-low latency (17ms) for
 
 ## Installation
 
-### Linux (Arch Linux)
+### Linux
 
+**Arch Linux**
 ```bash
 sudo pacman -S cmake gstreamer gst-plugins-base gst-plugins-good
 ```
 
-### Linux (Ubuntu/Debian)
-
+**Ubuntu/Debian**
 ```bash
-sudo apt install cmake \
-    libgstreamer1.0-dev \
-    libgstreamer-plugins-base1.0-dev
+sudo apt install cmake libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev
 ```
 
 ### Windows
 
-Windows รองรับ 2 วิธี เลือกตามความเหมาะสม:
-
-| วิธี | เหมาะกับ | ข้อดี |
-|------|----------|-------|
-| **Option A – Native (ไม่ใช้ Docker)** | ผู้ที่ต้องการ performance สูงสุด | ตรงไปตรงมา ไม่ต้องติดตั้ง Docker |
-| **Option B – Docker + VcXsrv** | ผู้ที่ต้องการ environment ที่แยกออกจากระบบ | Cross-platform, reproducible |
+| Option | Best For | Benefit |
+|--------|----------|---------|
+| **A – Native** | Maximum performance | No Docker required |
+| **B – Docker + VcXsrv** | Isolated environment | Cross-platform, reproducible |
 
 ---
 
-#### Option A: Native Windows Development
+#### Option A: Native Windows
 
-##### 1. ติดตั้ง CMake
+##### 1. Install CMake
 
-ดาวน์โหลดและติดตั้งจาก [cmake.org/download](https://cmake.org/download/)
-ระหว่างติดตั้ง ให้เลือก **"Add CMake to the system PATH"**
+Download from [cmake.org/download](https://cmake.org/download/) and select **"Add CMake to the system PATH"** during installation.
 
-##### 2. ติดตั้ง GStreamer
+##### 2. Install GStreamer
 
-ดาวน์โหลด **ทั้งสอง** installer สำหรับ architecture x86_64 จาก [gstreamer.freedesktop.org/download](https://gstreamer.freedesktop.org/download/):
+Download **both** x86_64 installers from [gstreamer.freedesktop.org/download](https://gstreamer.freedesktop.org/download/):
 
 - `gstreamer-1.0-msvc-x86_64-*.msi` — runtime
 - `gstreamer-1.0-devel-msvc-x86_64-*.msi` — development headers
 
-> ⚠️ เมื่อถูกถามให้เลือก Installation Type ให้เลือก **"Complete"** เท่านั้น ห้ามเลือก "Typical" เพราะจะขาด plugin และ `.pc` files ที่จำเป็น
+> ⚠️ Select **"Complete"** installation type — "Typical" omits required plugins and `.pc` files.
 
 Default install path: `C:\Program Files\gstreamer\1.0\msvc_x86_64\`
 
-##### 3. ติดตั้ง pkg-config (ถ้าจำเป็น)
+##### 3. Install pkg-config (optional)
 
-GStreamer มี `pkg-config.exe` bundle มาให้แล้วในโฟลเดอร์ `bin` ดังนั้น **ข้ามขั้นตอนนี้ได้** ถ้าคุณตั้งค่า PATH ในขั้นตอนถัดไปแล้ว
+GStreamer bundles `pkg-config.exe` in its `bin` folder. Skip this step if you set PATH in step 4.
 
-หากต้องการติดตั้งแยกผ่าน [MSYS2](https://www.msys2.org/) ให้เปิด **MSYS2 MinGW x64** shell แล้วรัน:
+To install separately via [MSYS2](https://www.msys2.org/), open an **MSYS2 MinGW x64** shell:
 
 ```bash
 pacman -S mingw-w64-x86_64-pkg-config
 ```
 
-จากนั้นเพิ่ม MSYS2 MinGW bin เข้า PATH ใน PowerShell:
+Then add MSYS2 to PATH:
 
 ```powershell
 [System.Environment]::SetEnvironmentVariable(
@@ -76,33 +72,33 @@ pacman -S mingw-w64-x86_64-pkg-config
 )
 ```
 
-##### 4. ตั้งค่า Environment Variables
+##### 4. Set Environment Variables
 
-เปิด PowerShell แล้วรันคำสั่งต่อไปนี้ทีละบรรทัด:
+Run each block in PowerShell:
 
 ```powershell
-# เพิ่ม GStreamer bin เข้า PATH (สำหรับ pkg-config.exe และ DLLs)
+# GStreamer binaries (pkg-config.exe + DLLs)
 [System.Environment]::SetEnvironmentVariable(
     "Path",
     [System.Environment]::GetEnvironmentVariable("Path", "User") + ";C:\Program Files\gstreamer\1.0\msvc_x86_64\bin",
     "User"
 )
 
-# กำหนด GStreamer root directory
+# GStreamer root directory
 [System.Environment]::SetEnvironmentVariable(
     "GSTREAMER_1_0_ROOT_MSVC_X86_64",
     "C:\Program Files\gstreamer\1.0\msvc_x86_64",
     "User"
 )
 
-# กำหนด path ไปยัง .pc files สำหรับ pkg-config
+# .pc files for pkg-config
 [System.Environment]::SetEnvironmentVariable(
     "PKG_CONFIG_PATH",
     "C:\Program Files\gstreamer\1.0\msvc_x86_64\lib\pkgconfig",
     "User"
 )
 
-# กำหนด path ไปยัง GStreamer plugins สำหรับ runtime
+# GStreamer plugins for runtime
 [System.Environment]::SetEnvironmentVariable(
     "GST_PLUGIN_PATH",
     "C:\Program Files\gstreamer\1.0\msvc_x86_64\lib\gstreamer-1.0",
@@ -110,67 +106,59 @@ pacman -S mingw-w64-x86_64-pkg-config
 )
 ```
 
-> ⚠️ **ปิดและเปิด PowerShell ใหม่** หลังจากตั้งค่า environment variables ทุกครั้ง
+> ⚠️ Restart PowerShell after setting environment variables.
 
-##### 5. ตรวจสอบการติดตั้ง
+##### 5. Verify Installation
 
 ```powershell
 pkg-config --version
 pkg-config --modversion gstreamer-1.0
 ```
 
-ทั้งสองคำสั่งควรแสดง version number ถ้า `pkg-config` ไม่พบ ให้ตรวจสอบว่า GStreamer `bin` folder อยู่ใน PATH แล้วหรือยัง
+Both commands should return a version number. If `pkg-config` is not found, confirm the GStreamer `bin` folder is in PATH.
 
 ---
 
-#### Option B: Containerized Development (Docker + VcXsrv)
-
-เหมาะสำหรับผู้ที่ต้องการ isolated environment หรือทำงานร่วมกับ Linux developers
+#### Option B: Docker + VcXsrv
 
 ##### Prerequisites
 
 - [Docker Desktop for Windows](https://www.docker.com/products/docker-desktop/)
-- [VcXsrv Windows X Server (XLaunch)](https://sourceforge.net/projects/vcxsrv/) — สำหรับแสดง video output จาก container
+- [VcXsrv / XLaunch](https://sourceforge.net/projects/vcxsrv/) — for displaying video output from the container
 
-##### ขั้นตอนที่ 1: ตั้งค่า VcXsrv (X11 Forwarding)
+##### Step 1: Configure VcXsrv (required before each container start)
 
-ต้องทำก่อนเปิด container ทุกครั้ง:
+1. Open **XLaunch**
+2. Display Settings → `Multiple windows` → Display number `-1` → Next
+3. Client Type → `Start no client` → Next
+4. Extra Settings:
+   - ✅ `Clipboard & Primary Selection`
+   - ✅ `Native opengl`
+   - ✅ `Disable access control` — **required**, or Windows will block video output
+5. Click **Finish**
 
-1. เปิดแอป **XLaunch**
-2. **Display Settings** → เลือก `Multiple windows` → ตั้ง Display number เป็น `-1` → Next
-3. **Client Type** → เลือก `Start no client` → Next
-4. **Extra Settings** (สำคัญมาก):
-   - ✅ Check: `Clipboard & Primary Selection`
-   - ✅ Check: `Native opengl`
-   - ✅ **ต้อง Check: `Disable access control`** — ถ้าไม่ check Windows จะบล็อก video output
-5. คลิก **Finish**
+> 💡 Hover over the tray icon to see your Display ID (e.g. `:0.0`). Ensure `docker-compose.yml` has `DISPLAY=host.docker.internal:0.0`.
 
-> 💡 Hover ที่ tray icon เพื่อดู Display ID ของคุณ (เช่น `:0.0` หรือ `:1.0`)
-> ถ้าเป็น `:0.0` ให้ตรวจสอบว่า `docker-compose.yml` มี `DISPLAY=host.docker.internal:0.0`
-
-##### ขั้นตอนที่ 2: Build และ Start Container
-
-เปิด PowerShell ใน project root directory แล้วรัน:
+##### Step 2: Build and Start the Container
 
 ```powershell
 docker compose up -d --build
 ```
 
-##### ขั้นตอนที่ 3: เข้าสู่ Container
+##### Step 3: Enter the Container
 
 ```powershell
 docker compose exec gstreamer-env /bin/bash
 ```
 
-##### ขั้นตอนที่ 4: Build และ Run ภายใน Container
+##### Step 4: Build and Run
 
 ```bash
-# ไปยัง workspace และ build
 cd /workspace
 cmake -S . -B build
 cmake --build build
 
-# ทดสอบ GStreamer display forwarding
+# Test display forwarding
 gst-launch-1.0 videotestsrc ! ximagesink sync=false
 
 # Run application
@@ -179,56 +167,35 @@ gst-launch-1.0 videotestsrc ! ximagesink sync=false
 
 ---
 
-## Build
-
-```bash
-cmake -S . -B build
-cmake --build build
-```
-
----
-
 ## Run
 
-**Linux**
-```bash
-./build/myapp
-```
-
-**Windows (Native)**
-```powershell
-.\build\Debug\myapp.exe
-```
-
-**Windows (Docker)**
-```bash
-# รันภายใน container
-./build/myapp
-```
+| Platform | Command |
+|----------|---------|
+| Linux | `./build/myapp` |
+| Windows (Native) | `.\build\Debug\myapp.exe` |
+| Windows (Docker) | `./build/myapp` (inside container) |
 
 ---
 
-## Troubleshooting (Windows)
+## Troubleshooting
 
-### Native
+### Native (Windows)
 
-**CMake ไม่พบ GStreamer packages**
-ตรวจสอบว่า `PKG_CONFIG_PATH` ชี้ไปยัง `.pc` files directory ที่ถูกต้อง และเปิด terminal ใหม่หลังจากตั้งค่า environment variables
+**CMake can't find GStreamer packages**
+Verify `PKG_CONFIG_PATH` points to the correct `.pc` files directory and restart your terminal after setting environment variables.
 
-**`myapp.exe` crash หรือไม่ start**
-GStreamer DLLs ต้องเข้าถึงได้ตอน runtime ตรวจสอบว่า `C:\Program Files\gstreamer\1.0\msvc_x86_64\bin` อยู่ใน `PATH`
+**`myapp.exe` crashes or won't start**
+GStreamer DLLs must be accessible at runtime. Confirm `C:\Program Files\gstreamer\1.0\msvc_x86_64\bin` is in `PATH`.
 
 **`pkg-config` not found**
-มากับ GStreamer — ยืนยันว่า GStreamer `bin` folder อยู่ใน `PATH` และเปิด terminal ใหม่ หรือติดตั้งผ่าน MSYS2 (ดูขั้นตอนที่ 3)
+Confirm the GStreamer `bin` folder is in `PATH` and restart your terminal. Alternatively, install via MSYS2 (see step 3).
 
 ### Docker + VcXsrv
 
-**Error: `Could not open display` / `Connection Refused`**
-- ตรวจสอบว่า VcXsrv กำลัง run อยู่ใน system tray
-- ยืนยันว่าเลือก `Disable access control` ใน XLaunch
-- ตรวจสอบ Windows Defender Firewall ว่าอนุญาต VcXsrv ทั้ง Private และ Public networks
+**`Could not open display` / `Connection Refused`**
+- Confirm VcXsrv is running in the system tray
+- Confirm `Disable access control` was checked in XLaunch
+- Check Windows Defender Firewall — VcXsrv must be allowed on both Private and Public networks
 
-**Segmentation fault (core dumped) ตอน startup**
-เกิดเมื่อ GStreamer พยายาม initialize video sink (`ximagesink` หรือ `autovideosink`) แต่ต่อกับ X Server ไม่ได้ แก้ไข display connection ก่อน
-
-ถ้าต้องการรัน headless (ไม่มีหน้าจอ) ให้แก้ pipeline code ให้ใช้ `fakesink` หรือ `filesink` แทน video rendering sink
+**Segmentation fault on startup**
+Occurs when GStreamer tries to initialize a video sink (`ximagesink` or `autovideosink`) without an X Server connection. Fix the display connection first, or switch to `fakesink` / `filesink` for headless operation.
